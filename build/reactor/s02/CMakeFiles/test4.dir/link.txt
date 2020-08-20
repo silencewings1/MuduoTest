@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/test4.dir/Channel.cpp.o CMakeFiles/test4.dir/EventLoop.cpp.o CMakeFiles/test4.dir/Poller.cpp.o CMakeFiles/test4.dir/test4.cpp.o CMakeFiles/test4.dir/__/__/thread/Thread.cpp.o CMakeFiles/test4.dir/__/__/datatime/TimeStamp.cpp.o CMakeFiles/test4.dir/__/__/datatime/test_timestamp.cpp.o  -o test4  -lpthread 

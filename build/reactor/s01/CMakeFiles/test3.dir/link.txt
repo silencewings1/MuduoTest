@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/test3.dir/Channel.cpp.o CMakeFiles/test3.dir/EventLoop.cpp.o CMakeFiles/test3.dir/Poller.cpp.o CMakeFiles/test3.dir/test3.cpp.o CMakeFiles/test3.dir/__/__/thread/Thread.cpp.o  -o test3  -lpthread 

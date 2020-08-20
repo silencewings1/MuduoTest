@@ -1,5 +1,6 @@
 #pragma once
 #include "EventLoop.h"
+#include "datatime/TimeStamp.h"
 #include <map>
 #include <vector>
 #include <poll.h>
@@ -14,7 +15,7 @@ public:
 public:
     Poller(EventLoop* loop);
 
-    void Poll(int timeout_ms, ChannelList& active_channels);
+    TimeStamp Poll(int timeout_ms, ChannelList& active_channels);
     void UpdateChannel(Channel* channel);
 
     void AssertInLoopThread() { owner_loop->AssertInLoopThread(); }

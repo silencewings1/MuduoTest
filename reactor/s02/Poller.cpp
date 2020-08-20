@@ -8,9 +8,10 @@ Poller::Poller(EventLoop* loop)
 {
 }
 
-void Poller::Poll(int timeout_ms, ChannelList& active_channels)
+TimeStamp Poller::Poll(int timeout_ms, ChannelList& active_channels)
 {
     int nums = ::poll(poll_fds.data(), poll_fds.size(), timeout_ms);
+    auto now = TimeStamp::Now();
     if (nums > 0)
     {
         std::cout << nums << " events happended\n";
@@ -24,6 +25,8 @@ void Poller::Poll(int timeout_ms, ChannelList& active_channels)
     {
         std::cout << "error in Poller::Poll()\n";
     }
+
+    return now;
 }
 
 void Poller::FillActiveChannels(int num_events, ChannelList& active_channels) const

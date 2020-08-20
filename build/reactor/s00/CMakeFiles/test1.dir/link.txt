@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/test1.dir/test1.cpp.o CMakeFiles/test1.dir/EventLoop.cpp.o CMakeFiles/test1.dir/__/__/thread/Thread.cpp.o  -o test1  -lpthread 
