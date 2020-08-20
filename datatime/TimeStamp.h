@@ -12,10 +12,11 @@ public:
     explicit TimeStamp(TimePoint time_point);
 
     int64_t MicroSecondsSinceEpoch() const;
-    Duration DurationSinceNow(TimeStamp when) const;
+    Duration DurationSinceNow() const;
 
     std::string ToString() const;
     void Swap(TimeStamp& other);
+    bool Vaild() const;
 
     static TimeStamp Now();
     static TimeStamp Invaild();

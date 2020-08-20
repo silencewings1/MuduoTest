@@ -37,9 +37,9 @@ int64_t TimeStamp::MicroSecondsSinceEpoch() const
     return duration_cast<microseconds>(tp.time_since_epoch()).count();
 }
 
-Duration TimeStamp::DurationSinceNow(TimeStamp when) const
+Duration TimeStamp::DurationSinceNow() const
 {
-    return when.tp - system_clock::now();
+    return tp - system_clock::now();
 }
 
 std::string TimeStamp::ToString() const
@@ -51,6 +51,11 @@ std::string TimeStamp::ToString() const
 void TimeStamp::Swap(TimeStamp& other)
 {
     std::swap(tp, other.tp);
+}
+
+bool TimeStamp::Vaild() const
+{
+    return MicroSecondsSinceEpoch() > 0;
 }
 
 TimeStamp TimeStamp::Now()

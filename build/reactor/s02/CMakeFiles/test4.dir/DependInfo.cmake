@@ -7,8 +7,8 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/os/code/muduo/my_recipes/reactor/s02/Channel.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/Channel.cpp.o"
   "/home/os/code/muduo/my_recipes/reactor/s02/EventLoop.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/EventLoop.cpp.o"
   "/home/os/code/muduo/my_recipes/reactor/s02/Poller.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/Poller.cpp.o"
+  "/home/os/code/muduo/my_recipes/reactor/s02/TimerQueue.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/TimerQueue.cpp.o"
   "/home/os/code/muduo/my_recipes/datatime/TimeStamp.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/__/__/datatime/TimeStamp.cpp.o"
-  "/home/os/code/muduo/my_recipes/datatime/test_timestamp.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/__/__/datatime/test_timestamp.cpp.o"
   "/home/os/code/muduo/my_recipes/thread/Thread.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/__/__/thread/Thread.cpp.o"
   "/home/os/code/muduo/my_recipes/reactor/s02/test4.cpp" "/home/os/code/muduo/my_recipes/build/reactor/s02/CMakeFiles/test4.dir/test4.cpp.o"
   )

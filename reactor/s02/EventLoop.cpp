@@ -1,6 +1,7 @@
 #include "EventLoop.h"
 #include "Channel.h"
 #include "Poller.h"
+#include "TimerQueue.h"
 #include <cassert>
 #include <iostream>
 
@@ -12,6 +13,8 @@ EventLoop::EventLoop()
     , quit(false)
     , thread_id(Tid())
     , poller(std::make_unique<Poller>(this))
+    , timer_queue(std::make_unique<TimerQueue>(this))
+    , poll_return_time(TimeStamp::Invaild())
 {
     std::cout << "EventLoop Create " << this
               << " in thread " << thread_id << std::endl;
@@ -43,7 +46,7 @@ void EventLoop::Loop()
     {
         active_channels.clear();
 
-        poller->Poll(POLL_TIME_MS, active_channels);
+        poll_return_time = poller->Poll(POLL_TIME_MS, active_channels);
 
         for (auto& ch : active_channels)
         {
@@ -55,6 +58,24 @@ void EventLoop::Loop()
 void EventLoop::Quit()
 {
     quit = true;
+}
+
+TimerId EventLoop::RunAt(const TimeStamp& when, TimerCallback cb)
+{
+    return timer_queue->AddTimer(std::move(cb), when);
+}
+
+TimerId EventLoop::RunAfter(const Duration& delay, TimerCallback cb)
+{
+    return timer_queue->AddTimer(std::move(cb),
+                                 AddTime(TimeStamp::Now(), delay));
+}
+
+TimerId EventLoop::RunEvery(const Duration& interval, TimerCallback cb)
+{
+    return timer_queue->AddTimer(std::move(cb),
+                                 AddTime(TimeStamp::Now(), interval),
+                                 interval);
 }
 
 void EventLoop::UpdateChannel(Channel* channel)

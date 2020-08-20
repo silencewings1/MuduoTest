@@ -27,7 +27,7 @@ public:
 private:
     void HandleRead();
 
-    auto GetExpired(TimeStamp now);
+    std::vector<Entry> GetExpired(TimeStamp now);
     void Reset(const std::vector<Entry>& expired, TimeStamp now);
     bool Insert(Timer* timer);
 

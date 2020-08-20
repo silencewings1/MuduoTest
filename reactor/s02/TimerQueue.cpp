@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sys/timerfd.h>
 #include <unistd.h>
+#include <string.h>
+#include "EventLoop.h"
 
 namespace
 {
@@ -17,28 +19,39 @@ int CreateTimerFd()
     return timerfd;
 }
 
-struct itimerspec TimeFromNow(TimeStamp when)
+struct timespec TimeFromNow(const TimeStamp& when)
 {
-    auto ms = when.MicroSecondsSinceEpoch() - TimeStamp::Now().MicroSecondsSinceEpoch();
-    if (ms<100) ms=100;
+    using namespace std::chrono;
 
-    struct itimerspec ts;
-    ts.
+    auto dur = when.DurationSinceNow();
 
+    struct timespec ts;
+    ts.tv_sec = duration_cast<seconds>(dur).count();
+    ts.tv_nsec = duration_cast<nanoseconds>(dur).count();
+
+    return ts;
 }
 
-void ResetTimerFd(int timer_fd, TimeStamp expiration)
+void ResetTimerFd(int timer_fd, const TimeStamp& expiration)
 {
     struct itimerspec newValue;
     bzero(&newValue, sizeof(newValue));
 
     newValue.it_value = TimeFromNow(expiration);
-    int ret = ::timerfd_settime(timerfd, 0, &newValue, nullptr);
+    int ret = ::timerfd_settime(timer_fd, 0, &newValue, nullptr);
     if (ret)
     {
-        std::cout << "timerfd_settime()"\n;
+        std::cout << "timerfd_settime()\n";
         abort();
     }
+}
+
+void ReadTimerFd(int timer_fd, const TimeStamp& now)
+{
+    uint64_t howmany;
+    ::read(timer_fd, &howmany, sizeof(howmany));
+    std::cout << "TimerQueue::handleRead() " << howmany 
+              << " at " << now.ToString() << std::endl;
 }
 
 } // namespace
@@ -56,8 +69,10 @@ TimerQueue::~TimerQueue()
 {
     ::close(timer_fd);
 
-    for (auto& entey : timers)
+    for (auto& entry : timers)
+    {
         delete entry.second;
+    }
 }
 
 TimerId TimerQueue::AddTimer(TimerCallback timer_cb, TimeStamp when, Duration interval)
@@ -68,7 +83,7 @@ TimerId TimerQueue::AddTimer(TimerCallback timer_cb, TimeStamp when, Duration in
     bool earliest_changed = Insert(timer);
     if (earliest_changed)
     {
-        // TODO
+        ResetTimerFd(timer_fd, timer->Expiration());
     }
 
     return TimerId(timer);
@@ -76,14 +91,55 @@ TimerId TimerQueue::AddTimer(TimerCallback timer_cb, TimeStamp when, Duration in
 
 void TimerQueue::HandleRead()
 {
+    loop->AssertInLoopThread();
+
+    auto now = TimeStamp::Now();
+    ReadTimerFd(timer_fd, now);
+
+    auto expired = GetExpired(now);
+    for (auto& entry : expired)
+    {
+        entry.second->Run();
+    }
+
+    Reset(expired, now);
 }
 
-auto TimerQueue::GetExpired(TimeStamp now)
+std::vector<TimerQueue::Entry> TimerQueue::GetExpired(TimeStamp now)
 {
+    Entry sentry = std::make_pair(std::move(now), reinterpret_cast<Timer*>(UINTPTR_MAX));
+    auto it = timers.lower_bound(sentry);
+
+    std::vector<TimerQueue::Entry> expired;
+    std::copy(timers.begin(), it, std::back_inserter(expired));
+    timers.erase(timers.begin(), it);
+
+    return expired;
 }
 
 void TimerQueue::Reset(const std::vector<Entry>& expired, TimeStamp now)
 {
+    for (auto& exp : expired)
+    {
+        if (exp.second->Repeat())
+        {
+            exp.second->Restart(now);
+            Insert(exp.second);
+        }
+        else
+        {
+            delete exp.second;
+        }
+
+        if (!timers.empty())
+        {
+            auto next_expired = timers.begin()->second->Expiration();
+            if (next_expired.Vaild())
+            {
+                ResetTimerFd(timer_fd, next_expired);
+            }
+        }
+    }
 }
 
 bool TimerQueue::Insert(Timer* timer)
