@@ -8,10 +8,9 @@ EventLoopThread::EventLoopThread()
 
 EventLoopThread::~EventLoopThread()
 {
+    loop->Quit();
     if (thread_.joinable())
         thread_.join();
-
-    loop->Quit();
 }
 
 EventLoop* EventLoopThread::StartLoop()
