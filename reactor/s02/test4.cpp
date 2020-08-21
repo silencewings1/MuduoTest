@@ -29,15 +29,19 @@ int main()
         std::cout << "msg: " << msg
                   << ", time: " << TimeStamp::Now().ToString() << std::endl;
 
-        if (++count == 10)
+        if (++count == 15)
         {
             loop.Quit();
         }
     };
 
     loop.RunAfter(1s, [&]() { print("once1s"); });
-    loop.RunAfter(2s, [&]() { print("once2s"); });
+    loop.RunAfter(1500ms, [&]() { print("once1.5s"); });
+    loop.RunAfter(2500ms, [&]() { print("once2.5s"); });
+    loop.RunAfter(3500ms, [&]() { print("once3.5s"); });
+    loop.RunEvery(2s, [&]() { print("every2s"); });
     loop.RunEvery(3s, [&]() { print("every3s"); });
+
 
     loop.Loop();
 

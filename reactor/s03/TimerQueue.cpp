@@ -14,7 +14,10 @@ int CreateTimerFd()
     int timerfd = ::timerfd_create(CLOCK_MONOTONIC,
                                    TFD_NONBLOCK | TFD_CLOEXEC);
     if (timerfd < 0)
+    {
         std::cout << "Failed in timerfd_create\n";
+        abort();
+    }
 
     return timerfd;
 }
@@ -52,9 +55,13 @@ void ResetTimerFd(int timer_fd, const TimeStamp& expiration)
 void ReadTimerFd(int timer_fd, const TimeStamp& now)
 {
     uint64_t howmany;
-    ::read(timer_fd, &howmany, sizeof(howmany));
-    std::cout << "TimerQueue::handleRead() " << howmany
-              << " at " << now.ToString() << std::endl;
+    auto n = ::read(timer_fd, &howmany, sizeof(howmany));
+    // std::cout << "TimerQueue::handleRead() " << howmany
+    //           << " at " << now.ToString() << std::endl;
+    if (n != sizeof(howmany))
+    {
+        std::cout << "TimerQueue::handleRead() reads " << n << " bytes instead of 8" << std::endl;
+    }
 }
 
 } // namespace
@@ -71,16 +78,18 @@ TimerQueue::TimerQueue(EventLoop* loop)
 TimerQueue::~TimerQueue()
 {
     ::close(timer_fd);
-
-    for (auto& entry : timers)
-    {
-        delete entry.second;
-    }
 }
 
-TimerId TimerQueue::AddTimer(TimerCallback timer_cb, TimeStamp when, Duration interval)
+TimerId TimerQueue::AddTimer(const TimerCallback& timer_cb, TimeStamp when, Duration interval)
 {
-    auto timer = new Timer(timer_cb, when, interval);
+    auto timer = std::make_shared<Timer>(timer_cb, when, interval);
+    loop->RunInLoop([&]() { this->AddTimerInLoop(timer); });
+
+    return TimerId(timer.get());
+}
+
+void TimerQueue::AddTimerInLoop(std::shared_ptr<Timer> timer)
+{
     loop->AssertInLoopThread();
 
     bool earliest_changed = Insert(timer);
@@ -88,8 +97,6 @@ TimerId TimerQueue::AddTimer(TimerCallback timer_cb, TimeStamp when, Duration in
     {
         ResetTimerFd(timer_fd, timer->Expiration());
     }
-
-    return TimerId(timer);
 }
 
 void TimerQueue::HandleRead()
@@ -110,8 +117,12 @@ void TimerQueue::HandleRead()
 
 std::vector<TimerQueue::Entry> TimerQueue::GetExpired(TimeStamp now)
 {
-    Entry sentry = std::make_pair(std::move(now), reinterpret_cast<Timer*>(UINTPTR_MAX));
-    auto it = timers.lower_bound(sentry);
+    TimerList::iterator it = timers.begin();
+    for (; it != timers.end(); ++it)
+    {
+        if (it->first >= now)
+            break;
+    }
 
     std::vector<TimerQueue::Entry> expired;
     std::copy(timers.begin(), it, std::back_inserter(expired));
@@ -129,10 +140,6 @@ void TimerQueue::Reset(const std::vector<Entry>& expired, TimeStamp now)
             exp.second->Restart(now);
             Insert(exp.second);
         }
-        else
-        {
-            delete exp.second;
-        }
 
         if (!timers.empty())
         {
@@ -145,7 +152,7 @@ void TimerQueue::Reset(const std::vector<Entry>& expired, TimeStamp now)
     }
 }
 
-bool TimerQueue::Insert(Timer* timer)
+bool TimerQueue::Insert(std::shared_ptr<Timer> timer)
 {
     auto when = timer->Expiration();
 

@@ -25,6 +25,9 @@ public:
     friend TimeStamp AddTime(TimeStamp origin, const Duration& duration_);
 
     bool operator<(const TimeStamp& other) const;
+    bool operator>(const TimeStamp& other) const;
+    bool operator<=(const TimeStamp& other) const;
+    bool operator>=(const TimeStamp& other) const;
     bool operator==(const TimeStamp& other) const;
 
 private:

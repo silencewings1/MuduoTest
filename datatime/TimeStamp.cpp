@@ -73,6 +73,21 @@ bool TimeStamp::operator<(const TimeStamp& other) const
     return tp < other.tp;
 }
 
+bool TimeStamp::operator<=(const TimeStamp& other) const
+{
+    return tp <= other.tp;
+}
+
+bool TimeStamp::operator>(const TimeStamp& other) const
+{
+    return tp > other.tp;
+}
+
+bool TimeStamp::operator>=(const TimeStamp& other) const
+{
+    return tp >= other.tp;
+}
+
 bool TimeStamp::operator==(const TimeStamp& other) const
 {
     return tp == other.tp;
